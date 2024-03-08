@@ -492,6 +492,7 @@ private NewJFrame1 jf;
                         @Override
                         public void actionPerformed(ActionEvent e) {
                             button.setBackground(colors[currentIndex]);
+                            if(startNode == null)
                             startNode= new Node(k / columns, k% columns);
                             currentIndex =1;
                             

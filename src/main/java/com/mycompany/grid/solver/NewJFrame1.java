@@ -31,6 +31,10 @@ class aStarAlgo {
     private final Node start;
     private final Node goal;
 
+    public ArrayList<Node> getTestedPath() {
+        return testedPath;
+    }
+
     public aStarAlgo(int[][] grid, Node start, Node goal) {
         this.grid = grid;
         this.openList = new ArrayList<>();
@@ -86,15 +90,15 @@ class aStarAlgo {
 
     private ArrayList<Node> getBoundaries(Node node) {
         ArrayList<Node> boundaries = new ArrayList<>();
-        // bottom node
-        if(isValidLocation(node.i,node.j-1)){
-            boundaries.add(new Node (node.i,node.j-1));
-        }
+
         // right node
         if(isValidLocation(node.i+1,node.j)){
             boundaries.add(new Node (node.i+1,node.j));
         }
-
+        // bottom node
+        if(isValidLocation(node.i,node.j-1)){
+            boundaries.add(new Node (node.i,node.j-1));
+        }
         // left node
         if(isValidLocation(node.i-1,node.j)){
             boundaries.add(new Node (node.i-1,node.j));
@@ -112,7 +116,7 @@ class aStarAlgo {
     private boolean isValidLocation(int i, int j) {
         return i >= 0 && i < grid.length && j >= 0 && j < grid[0].length && grid[i][j] != 1;
     }
-    private int calcHeuristic(Node n){
+    public int calcHeuristic(Node n){
         return  Math.abs(n.i - goal.i) + Math.abs(n.j - goal.j);
     }
 
@@ -164,10 +168,35 @@ public class NewJFrame1 extends javax.swing.JFrame {
         this.start = start;
         this.target1 = target1;
         this.target2 = target2;
-
+        Node goal = target1;
+        if(target2 != null){
         aStarAlgo solver = new aStarAlgo(gridValues, start, target1);
+        int dist1 = solver.calcHeuristic(start);
+        solver = new aStarAlgo(gridValues, start, target2);
+        int dist2 = solver.calcHeuristic(start);
+        if(dist2<dist1) goal = target2;
+        }
+        aStarAlgo solver = new aStarAlgo(gridValues, start, goal);
         ArrayList<Node> path = solver.solve();
-        test(path);
+        if(path == null && goal == target1 && target2 != null){
+            solver = new aStarAlgo(gridValues, start, target2);
+            goal = target2;
+            path = solver.solve();
+        }
+        else if(path == null && goal == target2 && target1 != null){
+            solver = new aStarAlgo(gridValues, start, target1);
+            goal = target1;
+            path = solver.solve();
+        }
+        ArrayList<Node> testedPath = solver.getTestedPath();
+        if(testedPath != null){
+            String s ="";
+            for(Node n : testedPath){
+                s += "("+n.i +" , "+n.j + " )"+"-->";
+            }
+            pathLabel.append(s);
+        }
+        test(path, goal);
     }
     public NewJFrame1() {
       
@@ -193,7 +222,8 @@ public class NewJFrame1 extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         grid = new javax.swing.JPanel();
         jLabel4 = new javax.swing.JLabel();
-        pathLabel = new javax.swing.JLabel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        pathLabel = new javax.swing.JTextArea();
 
         jLabel1.setText("jLabel1");
 
@@ -232,7 +262,10 @@ public class NewJFrame1 extends javax.swing.JFrame {
         jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         jLabel4.setText("Number Of Steps Neded: ");
 
-        pathLabel.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        pathLabel.setColumns(20);
+        pathLabel.setRows(5);
+        pathLabel.setEnabled(false);
+        jScrollPane2.setViewportView(pathLabel);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -250,8 +283,9 @@ public class NewJFrame1 extends javax.swing.JFrame {
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 203, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(pathLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 493, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGap(28, 28, 28)
+                                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 449, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18))
                             .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 537, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(186, 186, 186))))
             .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -265,15 +299,18 @@ public class NewJFrame1 extends javax.swing.JFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(86, 86, 86)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 350, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 43, Short.MAX_VALUE)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(num, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 29, Short.MAX_VALUE)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(pathLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 56, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(16, 16, 16))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(num, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(55, 55, 55))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap())))
             .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(jPanel1Layout.createSequentialGroup()
                     .addGap(33, 33, 33)
@@ -299,7 +336,8 @@ public class NewJFrame1 extends javax.swing.JFrame {
     /**
      * @param args the command line arguments
      */
-    public void test(ArrayList<Node> path){
+
+    public void test(ArrayList<Node> path, Node goal){
         System.out.println("Hello");
 //         grid.removeAll();
          int rows =gridValues.length, columns =gridValues[0].length;
@@ -327,13 +365,15 @@ public class NewJFrame1 extends javax.swing.JFrame {
                else if(row == start.i && col == start.j){
                    button.setBackground(green);
                }
-              else if(row == target1.i && col == target1.j){
+              else if(row == goal.i && col == goal.j){
                    button.setBackground(red);
                }
                
-              else if (path.contains(new Node(row, col))) {
+              else if (path!=null &&  path.contains(new Node(row, col))) {
                     button.setBackground(Color.blue); // Set button background color to blue
                 }
+              if(path == null) num.setText("0");
+              else
                num.setText(path.size() - 1+"");
                 // Add the button to the panel
                 grid.add(button);
@@ -409,7 +449,8 @@ private Node start, target1, target2;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JLabel num;
-    private javax.swing.JLabel pathLabel;
+    private javax.swing.JTextArea pathLabel;
     // End of variables declaration//GEN-END:variables
 }
